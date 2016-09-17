@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+		"http://www.ibatis.com/dtd/ibatis-2-config.dtd">
+
+<sqlMap namespace="sys">
+	<!-- 系统参数 -->
+	<typeAlias alias="paramInfo"
+		type="com.life.interfaces.code.sys.bean.param.ParamInfo" />
+	<typeAlias alias="feedInfo"
+		type="com.life.interfaces.code.sys.bean.feed.FeedInfo" />
+	<typeAlias alias="contentInfo"
+		type="com.life.interfaces.code.sys.bean.info.ContentInfo" />	
+	<typeAlias alias="reqSysInfo"
+		type="com.life.interfaces.code.sys.bean.sys.ReqSysInfo" />
+	<typeAlias alias="sysInfo"
+		type="com.life.interfaces.code.sys.bean.sys.SysInfo" />	
+	<typeAlias alias="fen"
+		type="com.life.interfaces.code.sys.bean.param.Fen" />
+	<typeAlias alias="reqSmsCodeInfo"
+		type="com.life.interfaces.code.sys.bean.sys.ReqSmsCodeInfo" />		
+			
+	<!-- 查询系统参数 -->
+	<select id="querySysParamInfo" parameterClass="java.lang.String"
+			resultClass="paramInfo">
+		select
+		t.param_key,
+		t.param_value
+		from
+		life_parameter t
+		where
+		t.param_key = #key#	
+	</select>	
+
+	<!-- 添加反馈 -->
+	<insert id="addFeedInfo" parameterClass="feedInfo">
+		INSERT INTO `life_feedback`
+		(
+			user_id,feed_con,
+			add_time
+		)
+		VALUES
+		(
+			#user_id#,#feed_con#,
+			SYSDATE()
+		)
+	</insert>
+	
+	<!-- 查询公告、关于我们 -->
+	<select id="queryContentInfo" parameterClass="java.lang.String"
+			resultClass="contentInfo">
+		select
+		t.class_id,
+		t.content
+		from
+		life_content t
+		where
+		t.class_id = #class_id#	
+	</select>	
+	
+	
+	<!-- 查询系统消息列表 -->
+	<select id="querySysInfoList" parameterClass="reqSysInfo"
+			resultClass="sysInfo">
+		SELECT
+		t.sms_id,
+		t.send_time,
+		t.title,
+		t.content,
+		IFNULL(
+		(
+			SELECT si.`status` FROM life_system_info si where si.sms_id = t.sms_id and si.user_id = #user_id#
+		),1)as status
+		FROM
+		life_system_sms_info t
+		order by t.send_time DESC
+		LIMIT #page#,#pageNum#
+	</select>	
+	<select id="querySysInfoListCou" parameterClass="reqSysInfo"
+			resultClass="java.lang.String">
+		SELECT
+		count(1)
+		FROM
+		life_system_sms_info t
+	</select>	
+	
+	
+	<!-- 查询系统消息列表 -->
+	<select id="querySysInfo" parameterClass="reqSysInfo"
+			resultClass="sysInfo">
+		SELECT
+		t.sms_id,
+		t.send_time,
+		t.title,
+		t.content,
+		IFNULL(
+		(
+			SELECT si.`status` FROM life_system_info si where si.sms_id = t.sms_id and si.user_id = #user_id#
+		),1)as status
+		FROM
+		life_system_sms_info t
+		where
+		t.sms_id = #sms_id#
+	</select>	
+	<insert id="updateSysInfo" parameterClass="reqSysInfo">
+		INSERT INTO `life_system_info`
+		(
+			sms_id,user_id,status,view_time
+		)
+		VALUES
+		(
+			#sms_id#,#user_id#,'0',SYSDATE()
+		)
+	</insert>
+	
+	
+	<!-- 增减积分 -->
+	<update id="updateFen" parameterClass="fen">
+		UPDATE `life_user` t
+		SET
+		t.user_id = user_id,
+		t.bonus_point = t.bonus_point + #fen#
+		where
+		t.user_id = #user_id#
+	</update>
+	
+	
+	<!-- 查询轮播 -->
+	<select id="queryParamList" parameterClass="java.lang.String"
+			resultClass="paramInfo">
+		select
+		t.param_key,
+		t.param_value
+		from
+		life_parameter t
+		where
+		t.param_key = #key#	
+	</select>	
+	
+	<!-- 插入验证码 -->
+	<insert id="addSmsCode" parameterClass="reqSmsCodeInfo">
+		INSERT INTO `life_sms`
+		(
+			content,code,add_time,type
+		)
+		VALUES
+		(
+			#phone#,#yzm#,SYSDATE(),#type#
+		)
+	</insert>
+</sqlMap>

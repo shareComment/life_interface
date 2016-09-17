@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+		"http://www.ibatis.com/dtd/ibatis-2-config.dtd">
+<sqlMapConfig>
+	<settings cacheModelsEnabled="true" enhancementEnabled="true"
+		lazyLoadingEnabled="true" maxRequests="32" maxSessions="10"
+		maxTransactions="5" useStatementNamespaces="true" />
+	
+	<!-- 用户 -->
+	<sqlMap resource="com/life/interfaces/cfg/ibatis/user-sqlmap.xml" />
+	<!-- 品牌 -->
+	<sqlMap resource="com/life/interfaces/cfg/ibatis/brand-sqlmap.xml" />
+	<!-- 评论 -->
+	<sqlMap resource="com/life/interfaces/cfg/ibatis/comment-sqlmap.xml" />
+	<!-- 系统 -->
+	<sqlMap resource="com/life/interfaces/cfg/ibatis/sys-sqlmap.xml" />
+	
+</sqlMapConfig>

@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+		"http://www.ibatis.com/dtd/ibatis-2-config.dtd">
+
+<sqlMap namespace="comment">
+
+	<!-- 评论 -->
+	<typeAlias alias="reqCommentInfo"
+		type="com.life.interfaces.code.comment.bean.info.ReqCommentInfo" />
+	<typeAlias alias="brandCommentInfo"
+		type="com.life.interfaces.code.comment.bean.info.BrandCommentInfo" />
+
+
+	<!-- 注册 -->
+	<insert id="addBrandComment" parameterClass="reqCommentInfo">
+		INSERT INTO `life_comment`
+		(
+			brand_id,user_id,
+			comment_pid,comment,comment_img,
+			add_time,score
+		)
+		VALUES
+		(
+			#brand_id#,#user_id#,
+			#comment_pid#,#comment#,#comment_img#,
+			SYSDATE(),#score#
+		)
+	</insert>
+	
+	
+	<!-- 查询评论列表 -->
+	<select id="queryBrandCommetList" parameterClass="reqCommentInfo"
+			resultClass="brandCommentInfo">
+		SELECT
+		lc.comment_id,
+		lc.brand_id,
+		lc.user_id,
+		lc.comment_pid,
+		lc.`comment`,
+		lc.comment_img,
+		lc.add_time,
+		lu.nickname,
+		lu.avatar,
+		lc.score,
+		(
+			SELECT count(1) FROM life_comment t where t.comment_pid = lc.comment_id
+		) as isComment,
+		(
+			SELECT lg.grade_name FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+		) as grade_name,
+		(
+			SELECT lg.grade_color FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+		) as grade_color
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lu.user_id
+		left join
+		life_brand ld
+		ON lc.brand_id = ld.brand_id
+		WHERE
+		lc.brand_id = #brand_id#
+		and
+		lc.`status` = '0'
+		<isNotEmpty prepend="AND" property="comment_id">  
+			lc.comment_pid = #comment_id#
+        </isNotEmpty>
+        <isEmpty prepend="AND" property="comment_id">  
+			lc.comment_pid = '0'
+        </isEmpty>
+		ORDER BY lc.add_time ASC
+		limit #page#,#pageNum#
+	</select>
+	<!-- 查询评论列表 条数-->
+	<select id="queryBrandCommetCou" parameterClass="reqCommentInfo"
+			resultClass="java.lang.String">
+		SELECT
+		count(1)
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lu.user_id
+		LEFT JOIN
+		life_brand ld
+		ON lc.brand_id = ld.brand_id
+		WHERE
+		lc.brand_id = #brand_id#
+		and
+		lc.`status` = '0'
+		<isNotEmpty prepend="AND" property="comment_id">  
+			lc.comment_pid = #comment_id#
+        </isNotEmpty>
+        <isEmpty prepend="AND" property="comment_id">  
+			lc.comment_pid = '0'
+        </isEmpty>
+		ORDER BY lc.add_time ASC
+	</select>
+	
+	
+	<!-- 查询我的评论列表 -->
+	<select id="queryMyBraCommentList" parameterClass="reqCommentInfo"
+			resultClass="brandCommentInfo">
+		SELECT
+		lc.comment_id,
+		lc.brand_id,
+		lc.user_id,
+		lc.comment_pid,
+		lc.`comment`,
+		lc.comment_img,
+		lc.add_time,
+		lu.nickname,
+		lc.score,
+		(
+			select lb.brand_name from life_brand lb where lb.brand_id = lc.brand_id
+		) as brand_name,
+		(
+			SELECT lg.grade_name FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+		) as grade_name,
+		(
+			SELECT lg.grade_color FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+		) as grade_color
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lu.user_id
+		LEFT JOIN
+		life_brand ld
+		ON lc.brand_id = ld.brand_id
+		WHERE
+		lc.user_id = #user_id#
+		and
+		lc.`status` = '0'
+		and
+		lu.`status` = '0'
+		and
+		lc.comment_pid = '0'
+		ORDER BY lc.add_time ASC
+		limit #page#,#pageNum#
+	</select>
+	<!-- 查询我的评论列表 条数-->
+	<select id="queryMyBraCommentCou" parameterClass="reqCommentInfo"
+			resultClass="java.lang.String">
+		SELECT
+		count(1)
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lu.user_id
+		LEFT JOIN
+		life_brand ld
+		ON lc.brand_id = ld.brand_id
+		WHERE
+		lc.user_id = #user_id#
+		and
+		lc.`status` = '0'
+		and
+		lu.`status` = '0'
+		and
+		lc.comment_pid = '0'
+	</select>
+	
+	
+	<!-- 查询最新的X条评论列表-->
+	<select id="queryLastBraCommentList" parameterClass="reqCommentInfo"
+			resultClass="brandCommentInfo">
+		SELECT
+		lc.comment_id,
+		lc.brand_id,
+		lc.user_id,
+		lc.comment_pid,
+		lc.`comment`,
+		lc.comment_img,
+		lc.add_time,
+		lc.score,
+		(
+			select lb.brand_name from life_brand lb where lb.brand_id = lc.brand_id
+		) as brand_name,
+		lu.nickname,
+		(
+			SELECT lg.grade_name FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+		) as grade_Name,
+		(
+			SELECT lg.grade_color FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+		) as grade_Color
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lu.user_id
+		LEFT JOIN
+		life_brand ld
+		ON lc.brand_id = ld.brand_id
+		WHERE
+		lc.`status` = '0'
+		and
+		lu.`status` = '0'
+		and
+		lc.comment_pid = '0'
+		ORDER BY lc.add_time desc
+		limit #page#,#pageNum#
+	</select>
+	
+	
+	<!-- 查询今天评论次数-->
+	<select id="queryCommentNumByToday" parameterClass="java.lang.String"
+			resultClass="java.lang.Integer">
+		SELECT
+		count(1)
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lu.user_id
+		WHERE
+		lc.`status` = '0'
+		and
+		lu.`status` = '0'
+		and
+		lc.comment_img is not null
+		and
+		lc.user_id = #userKey#
+		and
+		to_days(lc.add_time) = to_days(now());
+	</select>
+	<select id="queryCommentNumByTodays" parameterClass="java.lang.String"
+			resultClass="java.lang.Integer">
+		SELECT
+		count(1)
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lc.user_id
+		WHERE
+		lc.`status` = '0'
+		and
+		lu.`status` = '0'
+		and
+		lc.comment_img is null
+		and
+		lc.user_id = #userKey#
+		and
+		to_days(lc.add_time) = to_days(now());
+	</select>
+	
+	
+	<!-- 查询我的某品牌评论列表-->
+	<select id="queryMyCommentByBrand" parameterClass="reqCommentInfo"
+			resultClass="brandCommentInfo">
+		SELECT
+		lc.comment_id,
+		lc.brand_id,
+		lc.user_id,
+		lc.comment_pid,
+		lc.`comment`,
+		lc.comment_img,
+		lc.add_time,
+		lu.nickname,
+		lu.avatar,
+		lc.score,
+		(
+			select lb.brand_name from life_brand lb where lb.brand_id = lc.brand_id
+		) as brand_name,
+		(
+			SELECT count(1) FROM life_comment t where t.comment_pid = lc.comment_id
+		) as isComment,
+		(
+			SELECT lg.grade_name FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+		) as grade_name,
+		(
+			SELECT lg.grade_color FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+		) as grade_color
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lu.user_id
+		WHERE
+		lc.brand_id = #brand_id#
+		and
+		lc.`status` = '0'
+		and
+		lc.comment_pid = '0'
+		and
+		lc.user_id = #user_id#
+		ORDER BY lc.add_time ASC
+		limit #page#,#pageNum#
+	</select>
+	<select id="queryMyCommentByBrandCou" parameterClass="reqCommentInfo"
+			resultClass="java.lang.String">
+		SELECT
+		count(1)
+		FROM
+		life_comment lc
+		LEFT JOIN
+		life_user lu
+		ON
+		lc.user_id = lu.user_id
+		WHERE
+		lc.brand_id = #brand_id#
+		and
+		lc.`status` = '0'
+		and
+		lc.comment_pid = '0'
+		and
+		lc.user_id = #user_id#
+	</select>
+
+	<!-- 查询我的回复评论列表 -->
+	<select id="queryMyReplyComment" parameterClass="reqCommentInfo"
+			resultClass="brandCommentInfo">
+	<![CDATA[SELECT
+			lc1.comment_id,
+			lc1.brand_id,
+			lc1.comment_pid,
+			lc1.`comment`,
+			lc1.comment_img,
+			lc1.add_time,
+			lu.user_id,
+			lu.nickname,
+			lu.avatar,
+			lb.brand_name,
+			lg.grade_name,
+			lg.grade_color
+			FROM
+			(
+				SELECT
+				lc.*
+				FROM
+				life_comment as lc
+				WHERE
+				lc.user_id = #user_id#
+				AND
+				lc.comment_pid <> '0'
+			) as lc1
+			LEFT JOIN
+			life_comment as lc2
+			ON
+			lc1.comment_pid = lc2.comment_id
+			LEFT JOIN
+			life_user as lu
+			ON
+			lc2.user_id = lu.user_id
+			LEFT JOIN
+			life_brand as lb
+			ON
+			lc1.brand_id = lb.brand_id
+			LEFT JOIN
+			life_grade as lg
+			ON
+			lu.grade_id = lg.grade_id
+			ORDER BY lc1.add_time ASC
+			LIMIT #page#,#pageNum#
+	]]>
+	</select>
+	<select id="queryMyReplyCommentCou" parameterClass="reqCommentInfo"
+			resultClass="java.lang.String">
+		<![CDATA[SELECT
+				COUNT(1)
+				FROM
+				life_comment lc
+				WHERE
+				lc.user_id = #user_id#
+				AND
+				lc.comment_pid <> '0'
+		]]>
+	</select>
+	
+	<!-- 查询回复我的评论列表-->
+	<select id="queryReplyMyComment" parameterClass="reqCommentInfo"
+			resultClass="brandCommentInfo">
+			SELECT
+			lcf.comment_id,
+			lcf.brand_id,
+			lcf.user_id,
+			lcf.comment_pid,
+			lcf.`comment`,
+			lcf.comment_img,
+			lcf.add_time,
+			lu.nickname,
+			lu.avatar,
+			lcf.score,
+			(
+			select lb.brand_name from life_brand lb where lb.brand_id = lcf.brand_id
+		) as brand_name,
+			(
+						SELECT lg.grade_name FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+					) as grade_name,
+					(
+						SELECT lg.grade_color FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+					) as grade_color
+			FROM
+			life_comment lcf
+			LEFT JOIN
+			life_user lu
+			on lcf.user_id = lu.user_id
+			WHERE
+			lcf.comment_pid in
+			(
+			SELECT
+			lc.comment_id
+			FROM
+			life_comment lc
+			where
+			lc.user_id = #user_id#
+			and
+			lc.`status` = '0'
+			and
+			lc.comment_pid = '0'
+			)
+			AND
+			lcf.`status` = '0'
+			ORDER BY lcf.add_time ASC
+			limit #page#,#pageNum#
+	</select>
+	<select id="queryReplyMyCommentCou" parameterClass="reqCommentInfo"
+			resultClass="java.lang.String">
+		SELECT
+			count(1)
+			FROM
+			life_comment lcf
+			LEFT JOIN
+			life_user lu
+			on lcf.user_id = lu.user_id
+			WHERE
+			lcf.comment_pid in
+			(
+			SELECT
+			lc.comment_id
+			FROM
+			life_comment lc
+			where
+			lc.user_id = #user_id#
+			and
+			lc.`status` = '0'
+			and
+			lc.comment_pid = '0'
+			)
+			AND
+			lcf.`status` = '0'
+			ORDER BY lcf.add_time ASC
+	</select>
+	<select id="queryUserGrade" parameterClass="java.lang.String"
+			resultClass="java.lang.String">
+			select 
+			lg.grade_id
+			from
+			`life_grade` lg
+			where
+			lg.max_point >= (select t.bonus_point from `life_user` t where t.user_id = #userId#)
+			order by lg.grade_id asc
+			limit 0,1
+	</select>
+	<select id="queryCommentInfo" parameterClass="java.lang.String"
+			resultClass="brandCommentInfo">
+			SELECT
+			lc.comment_id,
+			lc.brand_id,
+			lc.user_id,
+			lc.comment_pid,
+			lc.`comment`,
+			lc.comment_img,
+			lc.add_time,
+			lu.nickname,
+			lu.avatar,
+			lc.score,
+			lc.zan,
+			(
+				select lb.brand_name from life_brand lb where lb.brand_id = lc.brand_id
+			) as brand_name,
+			(
+				SELECT count(1) FROM life_comment t where t.comment_pid = lc.comment_id
+			) as isComment,
+			(
+				SELECT lg.grade_name FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+			) as grade_name,
+			(
+				SELECT lg.grade_color FROM life_grade lg WHERE lg.grade_id = lu.grade_id
+			) as grade_color
+			FROM
+			life_comment lc
+			LEFT JOIN
+			life_user lu
+			ON
+			lc.user_id = lu.user_id
+			WHERE
+			lc.`status` = '0'
+			and
+			lc.comment_id = #comment_id#
+	</select>
+	
+	<!-- 修改评分 -->
+	<update id="uptBrandScore" parameterClass="java.lang.String">
+		UPDATE `life_brand` t
+		SET
+		t.score = (select avg(lc.score) from life_comment lc where lc.brand_id = #brand_id#)
+		where
+		t.brand_id = #brand_id#
+	</update>
+
+	<!-- 点赞 -->
+	<update id="increasecommentzan" parameterClass="brandCommentInfo">
+		UPDATE `life_comment` lc
+		SET
+		lc.zan = #zan#
+		where
+		lc.comment_id = #comment_id#
+	</update>
+</sqlMap>

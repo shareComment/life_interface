@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN"
+		"http://www.ibatis.com/dtd/ibatis-2-config.dtd">
+
+<sqlMap namespace="user">
+	<!-- 用户信息 -->
+	<typeAlias alias="userInfo"
+		type="com.life.interfaces.code.user.bean.info.UserInfo" />
+	<typeAlias alias="userPwd"
+		type="com.life.interfaces.code.user.bean.info.UserPwd" />
+	
+	<!-- 登录 -->
+	<select id="login" parameterClass="userInfo"
+			resultClass="userInfo">
+		select
+		t.user_id,
+		t.nickname,
+		t.`status`
+		from
+		life_user t
+		where
+		t.telephone = #telephone#
+		and
+		t.`password` = #password#		
+	</select>
+	
+	<!-- 查询用户是否存在 -->
+	<select id="queryUserPhone" parameterClass="userInfo"
+			resultClass="java.lang.Integer">
+		select
+		count(1)
+		from
+		life_user t
+		where
+		t.telephone = #telephone#
+	</select>
+	
+	<!-- 查询用户是否存在 -->
+	<select id="queryUserByPhone" parameterClass="java.lang.String"
+			resultClass="java.lang.String">
+		select
+		t.user_id
+		from
+		life_user t
+		where
+		t.telephone = #telephone#
+	</select>
+	
+	<!-- 查询盐值 -->
+	<select id="querySalt" parameterClass="userInfo"
+			resultClass="java.lang.String">
+		select
+		t.salt
+		from
+		life_user t
+		where
+		t.telephone = #telephone#
+		or
+		t.user_id = #user_id#
+	</select>
+	
+	<!-- 注册 -->
+	<insert id="register" parameterClass="userInfo">
+		INSERT INTO `life_user`
+		(
+			user_id,nickname,telephone,
+			password,salt,add_time,
+			last_time
+		)
+		VALUES
+		(
+			#user_id#,#nickname#,#telephone#,
+			#password#,#salt#,SYSDATE(),
+			SYSDATE()
+		)
+	</insert>
+	
+	<!-- 修改个人信息 -->
+	<update id="uptUser" parameterClass="userInfo">
+		UPDATE `life_user` t
+		SET
+		t.user_id = user_id
+		<isNotEmpty prepend="," property="nickname">
+			t.nickname = #nickname#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="username">
+			t.username = #username#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="email">
+			t.email = #email#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="avatar">
+			t.avatar = #avatar#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="address">
+			t.address = #address#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="idcard">
+			t.idcard = #idcard#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="last_time">
+			t.last_time = SYSDATE()
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="gender">
+			t.gender = #gender#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="education">
+			t.education = #education#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="age">
+			t.age = #age#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="collage">
+			t.collage = #collage#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="img_a">
+			t.img_a = #img_a#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="img_b">
+			t.img_b = #img_b#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="grade_id">
+			t.grade_id = #grade_id#
+		</isNotEmpty>
+		where
+		t.user_id = #user_id#
+	</update>
+	
+	<!-- 查询用户信息 -->
+	<select id="queryUserInfo" parameterClass="userInfo"
+			resultClass="userInfo">
+		select
+		t.*,
+		(
+			SELECT lg.grade_name FROM life_grade lg WHERE lg.grade_id = t.grade_id
+		) as grade_name,
+		(
+			SELECT lg.grade_color FROM life_grade lg WHERE lg.grade_id = t.grade_id
+		) as grade_color
+		from
+		life_user t
+		where
+		t.user_id = #user_id#
+	</select>
+	
+	<!-- 查询密码 -->
+	<select id="queryUserPwd" parameterClass="userInfo"
+			resultClass="java.lang.String">
+		select
+		t.password
+		from
+		life_user t
+		where
+		t.user_id = #user_id#
+	</select>
+	
+	<!-- 修改密码 -->
+	<update id="uptPwd" parameterClass="userPwd">
+		UPDATE `life_user` t
+		SET
+		t.password = #newPwd#
+		where
+		t.user_id = #user_id#
+	</update>
+	
+	<!-- 校验验证码 -->
+	<select id="queryCode" parameterClass="userInfo"
+			resultClass="java.lang.String">
+			<![CDATA[
+		select
+		(SYSDATE() - ls.add_time) <= 500
+		from
+		life_sms ls
+		where
+		ls.content = #telephone#
+		order by ls.add_time desc
+		limit 0,1
+		]]>
+	</select>
+</sqlMap>
